@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace csvToIcs
@@ -23,6 +24,27 @@ namespace csvToIcs
                 Console.WriteLine("Press any key...");
                 Console.ReadKey();
             }
+
+            var calendarEvents = GetCalendarEventsFromCsv(allCsvFiles);
+
+            WriteIcsFile(calendarEvents);
+        }
+
+        private static List<CalenderEvent> GetCalendarEventsFromCsv(string[] csvFiles)
+        {
+            var calendarEvents = new List<CalenderEvent>();
+
+            foreach (var csvFile in csvFiles)
+            {
+                //TODO
+            }
+
+            return calendarEvents;
+        }
+
+        private static void WriteIcsFile(List<CalenderEvent> calendarEvents)
+        {
+            //TODO
         }
     }
 }

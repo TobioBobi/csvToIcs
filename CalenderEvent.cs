@@ -2,7 +2,7 @@
 
 namespace csvToIcs
 {
-    public class iCalender
+    public abstract class CalenderEvent
     {
         public DateTime DateTimeStamp { get; set; }
         public string Uid { get; set; }
