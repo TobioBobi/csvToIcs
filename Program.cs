@@ -42,7 +42,19 @@ namespace csvToIcs
             }
 
             var calendar = CreateCalenderFromCsv(allCsvFiles);
-            WriteCalenderToFile(calendar);
+
+            try
+            {
+                WriteCalenderToFile(calendar);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error creating the ics file:");
+                Console.WriteLine(e);
+                Console.WriteLine("Press any key ...");
+                Console.ReadKey();
+                Environment.Exit(0);
+            }
 
             Console.WriteLine("Finished!");
             Console.WriteLine("Press any key ...");
@@ -55,6 +67,8 @@ namespace csvToIcs
 
             foreach (var csvFile in csvFiles)
             {
+                Console.WriteLine($"Reading {csvFile}");
+
                 using (var reader = new StreamReader(csvFile))
                 {
                     reader.ReadLine(); //Skip first row
@@ -71,7 +85,6 @@ namespace csvToIcs
                             Console.WriteLine($"Error parsing {values[2]} to DateTime! Entry is being skipped.");
                             continue;
                         }
-
                         if (!DateTime.TryParse(values[3], out var timeStart))
                         {
                             Console.WriteLine($"Error parsing {values[3]} to DateTime! Entry is being skipped.");
@@ -79,10 +92,19 @@ namespace csvToIcs
                         }
                         calendarEvent.DtStart = new CalDateTime(dateStart.Date.Add(timeStart.TimeOfDay));
 
-                        var dateEnd = DateTime.Parse(values[4]);
-                        var timeEnd = DateTime.Parse(values[5]);
+                        if (!DateTime.TryParse(values[4], out var dateEnd))
+                        {
+                            Console.WriteLine($"Error parsing {values[4]} to DateTime! Entry is being skipped.");
+                            continue;
+                        }
+                        if (!DateTime.TryParse(values[5], out var timeEnd))
+                        {
+                            Console.WriteLine($"Error parsing {values[5]} to DateTime! Entry is being skipped.");
+                            continue;
+                        }
                         calendarEvent.DtEnd = new CalDateTime(dateEnd.Date.Add(timeEnd.TimeOfDay));
 
+                        Console.WriteLine($"Adding new event {line}");
                         calendar.Events.Add(calendarEvent);
                     }
                 }
