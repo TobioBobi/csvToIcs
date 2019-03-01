@@ -78,7 +78,7 @@ namespace csvToIcs
                         var line = reader.ReadLine();
                         var values = line.Split(';');
 
-                        var calendarEvent = new CalendarEvent { Description = values[0], Location = values[1] };
+                        var calendarEvent = new CalendarEvent { Summary = values[0], Location = values[1] };
 
                         if (!DateTime.TryParse(values[2], out var dateStart))
                         {

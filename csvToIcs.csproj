@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="sample\import.csv" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Ical.Net">
