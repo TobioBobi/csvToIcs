@@ -17,7 +17,19 @@ namespace csvToIcs
             if (!Directory.Exists(importDir))
             {
                 Console.WriteLine("No import directory found! Creating it now...");
-                Directory.CreateDirectory(importDir);
+
+                try
+                {
+                    Directory.CreateDirectory(importDir);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Error while trying to create import directory:");
+                    Console.WriteLine(e);
+                    Console.WriteLine("Press any key ...");
+                    Console.ReadKey();
+                    Environment.Exit(0);
+                }
             }
 
             var allCsvFiles = Directory.GetFiles(importDir, "*.csv");
@@ -25,13 +37,16 @@ namespace csvToIcs
             if (allCsvFiles.Length <= 0)
             {
                 Console.WriteLine("No csv-files in import directory found!");
-                Console.WriteLine("Press any key...");
+                Console.WriteLine("Press any key ...");
                 Console.ReadKey();
             }
 
             var calendar = CreateCalenderFromCsv(allCsvFiles);
-
             WriteCalenderToFile(calendar);
+
+            Console.WriteLine("Finished!");
+            Console.WriteLine("Press any key ...");
+            Console.ReadKey();
         }
 
         private static Calendar CreateCalenderFromCsv(string[] csvFiles)
@@ -49,10 +64,19 @@ namespace csvToIcs
                         var line = reader.ReadLine();
                         var values = line.Split(';');
 
-                        var calendarEvent = new CalendarEvent {Description = values[0], Location = values[1]};
+                        var calendarEvent = new CalendarEvent { Description = values[0], Location = values[1] };
 
-                        var dateStart = DateTime.Parse(values[2]);
-                        var timeStart = DateTime.Parse(values[3]);
+                        if (!DateTime.TryParse(values[2], out var dateStart))
+                        {
+                            Console.WriteLine($"Error parsing {values[2]} to DateTime! Entry is being skipped.");
+                            continue;
+                        }
+
+                        if (!DateTime.TryParse(values[3], out var timeStart))
+                        {
+                            Console.WriteLine($"Error parsing {values[3]} to DateTime! Entry is being skipped.");
+                            continue;
+                        }
                         calendarEvent.DtStart = new CalDateTime(dateStart.Date.Add(timeStart.TimeOfDay));
 
                         var dateEnd = DateTime.Parse(values[4]);
@@ -72,7 +96,14 @@ namespace csvToIcs
             var serializer = new CalendarSerializer();
             var serializedCalendar = serializer.SerializeToString(calendar);
 
-            File.WriteAllText("calendar.ics", serializedCalendar);
+            var exportDir = Path.Combine(Directory.GetCurrentDirectory(), "export");
+            if (!Directory.Exists(exportDir))
+            {
+                Console.WriteLine("No export directory found! Creating it now...");
+                Directory.CreateDirectory(exportDir);
+            }
+
+            File.WriteAllText(Path.Combine(exportDir, "calendar.ics"), serializedCalendar);
         }
     }
 }
