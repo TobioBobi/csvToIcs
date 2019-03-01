@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Ical.Net;
+using Ical.Net.CalendarComponents;
+using Ical.Net.DataTypes;
+using Ical.Net.Serialization;
 
 namespace csvToIcs
 {
@@ -25,26 +29,50 @@ namespace csvToIcs
                 Console.ReadKey();
             }
 
-            var calendarEvents = GetCalendarEventsFromCsv(allCsvFiles);
+            var calendar = CreateCalenderFromCsv(allCsvFiles);
 
-            WriteIcsFile(calendarEvents);
+            WriteCalenderToFile(calendar);
         }
 
-        private static List<CalenderEvent> GetCalendarEventsFromCsv(string[] csvFiles)
+        private static Calendar CreateCalenderFromCsv(string[] csvFiles)
         {
-            var calendarEvents = new List<CalenderEvent>();
+            var calendar = new Calendar();
 
             foreach (var csvFile in csvFiles)
             {
-                //TODO
+                using (var reader = new StreamReader(csvFile))
+                {
+                    reader.ReadLine(); //Skip first row
+
+                    while (!reader.EndOfStream)
+                    {
+                        var line = reader.ReadLine();
+                        var values = line.Split(';');
+
+                        var calendarEvent = new CalendarEvent {Description = values[0], Location = values[1]};
+
+                        var dateStart = DateTime.Parse(values[2]);
+                        var timeStart = DateTime.Parse(values[3]);
+                        calendarEvent.DtStart = new CalDateTime(dateStart.Date.Add(timeStart.TimeOfDay));
+
+                        var dateEnd = DateTime.Parse(values[4]);
+                        var timeEnd = DateTime.Parse(values[5]);
+                        calendarEvent.DtEnd = new CalDateTime(dateEnd.Date.Add(timeEnd.TimeOfDay));
+
+                        calendar.Events.Add(calendarEvent);
+                    }
+                }
             }
 
-            return calendarEvents;
+            return calendar;
         }
 
-        private static void WriteIcsFile(List<CalenderEvent> calendarEvents)
+        private static void WriteCalenderToFile(Calendar calendar)
         {
-            //TODO
+            var serializer = new CalendarSerializer();
+            var serializedCalendar = serializer.SerializeToString(calendar);
+
+            File.WriteAllText("calendar.ics", serializedCalendar);
         }
     }
 }
