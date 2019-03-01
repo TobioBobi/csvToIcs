@@ -13,7 +13,8 @@ namespace csvToIcs
         static void Main(string[] args)
         {
             var importDir = Path.Combine(Directory.GetCurrentDirectory(), "import");
-
+            var exportDir = Path.Combine(Directory.GetCurrentDirectory(), "export");
+            
             if (!Directory.Exists(importDir))
             {
                 Console.WriteLine("No import directory found! Creating it now...");
@@ -32,6 +33,12 @@ namespace csvToIcs
                 }
             }
 
+            if (!Directory.Exists(exportDir))
+            {
+                Console.WriteLine("No export directory found! Creating it now...");
+                Directory.CreateDirectory(exportDir);
+            }
+
             var allCsvFiles = Directory.GetFiles(importDir, "*.csv");
 
             if (allCsvFiles.Length <= 0)
@@ -39,13 +46,14 @@ namespace csvToIcs
                 Console.WriteLine("No csv-files in import directory found!");
                 Console.WriteLine("Press any key ...");
                 Console.ReadKey();
+                Environment.Exit(0);
             }
 
             var calendar = CreateCalenderFromCsv(allCsvFiles);
 
             try
             {
-                WriteCalenderToFile(calendar);
+                WriteCalenderToFile(calendar, Path.Combine(exportDir, "calendar.ics"));
             }
             catch (Exception e)
             {
@@ -113,19 +121,12 @@ namespace csvToIcs
             return calendar;
         }
 
-        private static void WriteCalenderToFile(Calendar calendar)
+        private static void WriteCalenderToFile(Calendar calendar, string file)
         {
             var serializer = new CalendarSerializer();
             var serializedCalendar = serializer.SerializeToString(calendar);
 
-            var exportDir = Path.Combine(Directory.GetCurrentDirectory(), "export");
-            if (!Directory.Exists(exportDir))
-            {
-                Console.WriteLine("No export directory found! Creating it now...");
-                Directory.CreateDirectory(exportDir);
-            }
-
-            File.WriteAllText(Path.Combine(exportDir, "calendar.ics"), serializedCalendar);
+            File.WriteAllText(file, serializedCalendar);
         }
     }
 }
