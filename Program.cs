@@ -100,11 +100,20 @@ namespace csvToIcs
                         }
                         calendarEvent.DtStart = new CalDateTime(dateStart.Date.Add(timeStart.TimeOfDay));
 
+                        //If the end date is empty, set the start date as end date
+                        if (string.IsNullOrEmpty(values[4]))
+                            values[4] = values[2];
+
                         if (!DateTime.TryParse(values[4], out var dateEnd))
                         {
                             Console.WriteLine($"Error parsing {values[4]} to DateTime! Entry is being skipped.");
                             continue;
                         }
+
+                        //If the end time is empty, set the start time + 2 hours as end time
+                        if (string.IsNullOrEmpty(values[5]))
+                            values[5] = timeStart.AddHours(2).ToShortTimeString();
+
                         if (!DateTime.TryParse(values[5], out var timeEnd))
                         {
                             Console.WriteLine($"Error parsing {values[5]} to DateTime! Entry is being skipped.");
