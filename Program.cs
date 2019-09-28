@@ -121,6 +121,9 @@ namespace csvToIcs
                         }
                         calendarEvent.DtEnd = new CalDateTime(dateEnd.Date.Add(timeEnd.TimeOfDay));
 
+                        if (!string.IsNullOrEmpty(values[6]))
+                            calendarEvent.Description = values[6];
+                        
                         Console.WriteLine($"Adding new event {line}");
                         calendar.Events.Add(calendarEvent);
                     }
