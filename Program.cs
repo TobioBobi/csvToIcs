@@ -14,7 +14,7 @@ namespace csvToIcs
         {
             var importDir = Path.Combine(Directory.GetCurrentDirectory(), "import");
             var exportDir = Path.Combine(Directory.GetCurrentDirectory(), "export");
-            
+
             if (!Directory.Exists(importDir))
             {
                 Console.WriteLine("No import directory found! Creating it now...");
@@ -29,7 +29,7 @@ namespace csvToIcs
                     Console.WriteLine(e);
                     Console.WriteLine("Press any key ...");
                     Console.ReadKey();
-                    Environment.Exit(0);
+                    Environment.Exit(1);
                 }
             }
 
@@ -46,7 +46,7 @@ namespace csvToIcs
                 Console.WriteLine("No csv-files in import directory found!");
                 Console.WriteLine("Press any key ...");
                 Console.ReadKey();
-                Environment.Exit(0);
+                Environment.Exit(1);
             }
 
             var calendar = CreateCalenderFromCsv(allCsvFiles);
@@ -61,7 +61,7 @@ namespace csvToIcs
                 Console.WriteLine(e);
                 Console.WriteLine("Press any key ...");
                 Console.ReadKey();
-                Environment.Exit(0);
+                Environment.Exit(1);
             }
 
             Console.WriteLine("Finished!");
@@ -86,18 +86,20 @@ namespace csvToIcs
                         var line = reader.ReadLine();
                         var values = line.Split(';');
 
-                        var calendarEvent = new CalendarEvent { Summary = values[0], Location = values[1] };
+                        var calendarEvent = new CalendarEvent {Summary = values[0], Location = values[1]};
 
                         if (!DateTime.TryParse(values[2], out var dateStart))
                         {
                             Console.WriteLine($"Error parsing {values[2]} to DateTime! Entry is being skipped.");
                             continue;
                         }
+
                         if (!DateTime.TryParse(values[3], out var timeStart))
                         {
                             Console.WriteLine($"Error parsing {values[3]} to DateTime! Entry is being skipped.");
                             continue;
                         }
+
                         calendarEvent.DtStart = new CalDateTime(dateStart.Date.Add(timeStart.TimeOfDay));
 
                         //If the end date is empty, set the start date as end date
@@ -119,11 +121,12 @@ namespace csvToIcs
                             Console.WriteLine($"Error parsing {values[5]} to DateTime! Entry is being skipped.");
                             continue;
                         }
+
                         calendarEvent.DtEnd = new CalDateTime(dateEnd.Date.Add(timeEnd.TimeOfDay));
 
                         if (!string.IsNullOrEmpty(values[6]))
                             calendarEvent.Description = values[6];
-                        
+
                         Console.WriteLine($"Adding new event {line}");
                         calendar.Events.Add(calendarEvent);
                     }
