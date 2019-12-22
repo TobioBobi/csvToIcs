@@ -75,61 +75,72 @@ namespace csvToIcs
 
             foreach (var csvFile in csvFiles)
             {
-                Console.WriteLine($"Reading {csvFile}");
-
-                using (var reader = new StreamReader(csvFile))
+                try
                 {
-                    reader.ReadLine(); //Skip first row
+                    Console.WriteLine($"Reading {csvFile}");
 
-                    while (!reader.EndOfStream)
+                    using (var reader = new StreamReader(csvFile))
                     {
-                        var line = reader.ReadLine();
-                        var values = line.Split(';');
+                        reader.ReadLine(); //Skip first row
 
-                        var calendarEvent = new CalendarEvent {Summary = values[0], Location = values[1]};
-
-                        if (!DateTime.TryParse(values[2], out var dateStart))
+                        while (!reader.EndOfStream)
                         {
-                            Console.WriteLine($"Error parsing {values[2]} to DateTime! Entry is being skipped.");
-                            continue;
+                            var line = reader.ReadLine();
+                            var values = line.Split(';');
+
+                            //Summary is mandatory
+                            if (string.IsNullOrEmpty(values[0]))
+                                continue;
+
+                            var calendarEvent = new CalendarEvent {Summary = values[0], Location = values[1]};
+
+                            if (!DateTime.TryParse(values[2], out var dateStart))
+                            {
+                                Console.WriteLine($"Error parsing {values[2]} to DateTime! Entry is being skipped.");
+                                continue;
+                            }
+
+                            if (!DateTime.TryParse(values[3], out var timeStart))
+                            {
+                                Console.WriteLine($"Error parsing {values[3]} to DateTime! Entry is being skipped.");
+                                continue;
+                            }
+
+                            calendarEvent.DtStart = new CalDateTime(dateStart.Date.Add(timeStart.TimeOfDay));
+
+                            //If the end date is empty, set the start date as end date
+                            if (string.IsNullOrEmpty(values[4]))
+                                values[4] = values[2];
+
+                            if (!DateTime.TryParse(values[4], out var dateEnd))
+                            {
+                                Console.WriteLine($"Error parsing {values[4]} to DateTime! Entry is being skipped.");
+                                continue;
+                            }
+
+                            //If the end time is empty, set the start time + 2 hours as end time
+                            if (string.IsNullOrEmpty(values[5]))
+                                values[5] = timeStart.AddHours(2).ToShortTimeString();
+
+                            if (!DateTime.TryParse(values[5], out var timeEnd))
+                            {
+                                Console.WriteLine($"Error parsing {values[5]} to DateTime! Entry is being skipped.");
+                                continue;
+                            }
+
+                            calendarEvent.DtEnd = new CalDateTime(dateEnd.Date.Add(timeEnd.TimeOfDay));
+
+                            if (values.Length < 6 && !string.IsNullOrEmpty(values[6]))
+                                calendarEvent.Description = values[6];
+
+                            Console.WriteLine($"Adding new event {line}");
+                            calendar.Events.Add(calendarEvent);
                         }
-
-                        if (!DateTime.TryParse(values[3], out var timeStart))
-                        {
-                            Console.WriteLine($"Error parsing {values[3]} to DateTime! Entry is being skipped.");
-                            continue;
-                        }
-
-                        calendarEvent.DtStart = new CalDateTime(dateStart.Date.Add(timeStart.TimeOfDay));
-
-                        //If the end date is empty, set the start date as end date
-                        if (string.IsNullOrEmpty(values[4]))
-                            values[4] = values[2];
-
-                        if (!DateTime.TryParse(values[4], out var dateEnd))
-                        {
-                            Console.WriteLine($"Error parsing {values[4]} to DateTime! Entry is being skipped.");
-                            continue;
-                        }
-
-                        //If the end time is empty, set the start time + 2 hours as end time
-                        if (string.IsNullOrEmpty(values[5]))
-                            values[5] = timeStart.AddHours(2).ToShortTimeString();
-
-                        if (!DateTime.TryParse(values[5], out var timeEnd))
-                        {
-                            Console.WriteLine($"Error parsing {values[5]} to DateTime! Entry is being skipped.");
-                            continue;
-                        }
-
-                        calendarEvent.DtEnd = new CalDateTime(dateEnd.Date.Add(timeEnd.TimeOfDay));
-
-                        if (!string.IsNullOrEmpty(values[6]))
-                            calendarEvent.Description = values[6];
-
-                        Console.WriteLine($"Adding new event {line}");
-                        calendar.Events.Add(calendarEvent);
                     }
+                }
+                catch (Exception exception)
+                {
+                    Console.WriteLine($"Error in file {csvFile}: {exception.Message}");
                 }
             }
 
